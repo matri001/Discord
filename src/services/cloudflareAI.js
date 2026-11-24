@@ -10,9 +10,7 @@ async function chat(messages) {
         throw new Error('Missing Cloudflare AI configuration');
     }
 
-    const url =
-        `https://api.cloudflare.com/client/v4/accounts/` +
-        `${ACCOUNT_ID}/ai/run/${MODEL}`;
+    const url =`https://api.cloudflare.com/client/v4/accounts/` +`${ACCOUNT_ID}/ai/run/${MODEL}`;
 
     // 2. Send request to Cloudflare
     const response = await fetch(url, {
