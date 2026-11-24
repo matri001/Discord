@@ -1,6 +1,7 @@
 
 const { SlashCommandBuilder } = require('discord.js');
 const cloudflareAI = require('../services/cloudflareAI');
+const guildConfigService = require('../services/guildConfigService');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -21,6 +22,24 @@ module.exports = {
         await interaction.deferReply();
 
         try {
+            if (!interaction.guild) {
+                await interaction.editReply(
+                    'Lệnh này chỉ có thể dùng trong một server Discord.'
+                );
+                return;
+            }
+
+            const aiEnabled = await guildConfigService.isAIEnabled(
+                interaction.guild.id
+            );
+
+            if (!aiEnabled) {
+                await interaction.editReply(
+                    'AI hiện đang bị tắt trên server này.'
+                );
+                return;
+            }
+
             const answer = await cloudflareAI.chat([
                 {
                     role: 'system',
@@ -52,10 +71,7 @@ module.exports = {
                 await interaction.editReply('AI đang xử lý quá lâu. Bạn vui lòng thử lại sau nhé!');
                 return;
             }
-
-            await interaction.editReply(
-            'Xin lỗi, AI hiện không thể trả lời. Vui lòng thử lại sau.'
-        );
+            await interaction.editReply('Xin lỗi, AI hiện không thể trả lời. Vui lòng thử lại sau.');
         }
     }
 };

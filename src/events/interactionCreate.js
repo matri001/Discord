@@ -18,18 +18,22 @@ module.exports = {
             console.error(`Command not found: ${interaction.commandName}`);
             return;
         }
+
         try {
-            // Thực thi command
-            await command.execute(interaction, client);
+            // Lưu thông tin server và user trước khi thực thi command
             if (interaction.guild && interaction.user) {
                 const guildService = require('../services/guildService');
 
                 await guildService.ensureGuildMember(
-                 interaction.guild,
-                 interaction.user,
-                 interaction.member?.joinedAt ?? null
-        );
-    }
+                    interaction.guild,
+                    interaction.user,
+                    interaction.member?.joinedAt ?? null
+                );
+            }
+
+            // Thực thi command
+            await command.execute(interaction, client);
+
         } catch (error) {
             console.error('Interaction error:', error);
 

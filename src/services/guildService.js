@@ -7,9 +7,9 @@ const {
     GuildMember
 } = require('../models');
 
+// Kiểm tra server đã tồn tại chưa, nếu chưa thì tạo mới
 async function ensureGuild(guild) {
     return sequelize.transaction(async (transaction) => {
-        // Tìm hoặc tạo Discord Server
         const [guildRecord] = await Guild.findOrCreate({
             where: {
                 discordGuildId: guild.id
@@ -21,7 +21,7 @@ async function ensureGuild(guild) {
             transaction
         });
 
-        // Cập nhật tên nếu Server đổi tên
+        // Cập nhật tên server nếu có thay đổi
         if (guildRecord.name !== guild.name) {
             await guildRecord.update(
                 { name: guild.name },
@@ -29,7 +29,7 @@ async function ensureGuild(guild) {
             );
         }
 
-        // Tạo cấu hình mặc định nếu chưa tồn tại
+        // Tạo cấu hình mặc định cho server
         const [config] = await GuildConfig.findOrCreate({
             where: {
                 guildId: guildRecord.id
@@ -49,9 +49,9 @@ async function ensureGuild(guild) {
     });
 }
 
+// Đảm bảo server và thành viên đã được lưu
 async function ensureGuildMember(guild, discordUser, joinedAt = null) {
     return sequelize.transaction(async (transaction) => {
-        // Đảm bảo Guild và GuildConfig tồn tại
         const [guildRecord] = await Guild.findOrCreate({
             where: {
                 discordGuildId: guild.id
@@ -75,7 +75,6 @@ async function ensureGuildMember(guild, discordUser, joinedAt = null) {
             transaction
         });
 
-        // Tìm hoặc tạo User
         const [userRecord] = await User.findOrCreate({
             where: {
                 discordUserId: discordUser.id
@@ -88,13 +87,13 @@ async function ensureGuildMember(guild, discordUser, joinedAt = null) {
             transaction
         });
 
-        // Đồng bộ thông tin User mới nhất
+        // Đồng bộ tên người dùng mới nhất
         await userRecord.update({
             username: discordUser.username,
             globalName: discordUser.globalName
         }, { transaction });
 
-        // Tạo quan hệ Guild - User nếu chưa tồn tại
+        // Lưu quan hệ thành viên - server
         await GuildMember.findOrCreate({
             where: {
                 guildId: guildRecord.id,
